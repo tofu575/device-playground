@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'haptic_experiment.dart';
+import '../context/haptics_context.dart';
+import '../model/haptic_experiment.dart';
 import 'widgets/haptic_section.dart';
 import 'widgets/last_played_card.dart';
 
@@ -18,7 +19,7 @@ final class _HapticsPageState extends State<HapticsPage> {
 
   /// Hapticsを実行し、完了後にLast playedへ反映します。
   Future<void> _play(HapticExperiment experiment) async {
-    await experiment.play();
+    await HapticsContext.of(context).play(experiment);
     if (!mounted) {
       return;
     }

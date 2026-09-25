@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../haptic_experiment.dart';
+import '../../model/haptic_experiment.dart';
 
 /// Hapticsの実行ボタンと、呼び出すFlutter API名を表示します。
 final class HapticButton extends StatelessWidget {

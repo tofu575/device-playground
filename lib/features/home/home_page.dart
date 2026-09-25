@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../haptics/haptics_page.dart';
+import '../haptics/context/haptics_feature.dart';
 import 'widgets/experiment_card.dart';
 
 /// 実装済みのデバイス実験への入口を表示します。
@@ -26,7 +26,7 @@ final class HomePage extends StatelessWidget {
             description: 'Tactile feedback',
             icon: Icons.vibration_rounded,
             onTap: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(builder: (_) => const HapticsPage()),
+              MaterialPageRoute<void>(builder: (_) => const HapticsFeature()),
             ),
           ),
         ],

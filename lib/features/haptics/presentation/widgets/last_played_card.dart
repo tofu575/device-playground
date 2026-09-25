@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../haptic_experiment.dart';
+import '../../model/haptic_experiment.dart';
 
 /// 直近に実行したHapticsとAPI名、または未実行状態を表示します。
 final class LastPlayedCard extends StatelessWidget {

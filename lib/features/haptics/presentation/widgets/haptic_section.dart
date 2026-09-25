@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../haptic_experiment.dart';
+import '../../model/haptic_experiment.dart';
 import 'haptic_button.dart';
 
 /// 同種のHapticsを見出し付きでまとめ、比較しやすく配置します。

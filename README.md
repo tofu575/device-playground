@@ -38,20 +38,25 @@
 
 このリポジトリでは、実験を素早く追加・削除できるよう、Feature単位でコードをまとめる。
 以前のテンプレートにあったClean Architectureの `domain` / `usecase` / `gateway` /
-`presentation` 分割は採用しない。各実験で必要なUI、状態、デバイスAPI呼び出しは、原則として
-同じFeature配下へ配置する。
+`presentation` 分割は採用しない。各実験で必要なコードは同じFeature配下へ配置しつつ、
+Pageとデバイス機能へのアクセスは分離する。
 
 ```text
 lib/
 ├─ app/                      # アプリ全体の設定
 ├─ features/
 │  ├─ home/                 # 実装済み実験への入口
-│  └─ haptics/              # HapticsのUI・状態・API呼び出し
+│  └─ haptics/
+│     ├─ context/           # Serviceの共有とFeatureの組み立て
+│     ├─ model/             # Haptics Featureで扱う値
+│     ├─ presentation/      # Pageとページ固有Widget
+│     └─ service/           # Flutter・ネイティブのデバイス機能アクセス
 └─ main.dart
 ```
 
-複数Featureで実際に共有するものが生まれた時点で共通化を検討し、将来用途を予測した
-レイヤーや抽象化は先に作らない。
+Feature内部で共有するServiceはContextから取得する。機能の実行に値が必要な場合は、
+Contextへ状態として保持せず、アクセスメソッドの引数として渡す。複数Featureで実際に共有する
+ものが生まれた時点で共通化を検討し、将来用途を予測したレイヤーは先に作らない。
 
 ## Flutterを共通シェルとして使う
 
