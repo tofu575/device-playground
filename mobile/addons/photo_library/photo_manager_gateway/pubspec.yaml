@@ -1,0 +1,16 @@
+name: photo_manager_gateway
+
+description: "Photo Library access backed by photo_manager"
+publish_to: "none"
+
+version: 0.1.0+1
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  photo_manager: 3.11.0
+
+dev_dependencies:
+  lints: 5.1.1

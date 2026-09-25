@@ -1,0 +1,328 @@
+openapi: 3.1.0
+info:
+  title: Template API
+  summary: Actix Webで構築するAPIのOpenAPIテンプレート
+  version: 1.0.0
+  description: |
+    API仕様を記述するための最小構成のサンプル。
+    Bearer認証、死活チェック、resourceの取得・作成・削除、共通error responseを定義する。
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+
+servers:
+  - url: /
+    description: OpenAPIを配信したhostと同じorigin
+
+tags:
+  - name: Health
+    description: Serviceの稼働状態を確認する
+  - name: Items
+    description: サンプルresourceを操作する
+
+# 原則として全operationにBearer認証を要求する。
+# 認証不要のoperationでは個別に`security: []`を指定する。
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Serviceの稼働状態を取得する
+      description: Load balancerや監視serviceから利用する認証不要の死活チェック。
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Serviceは正常に稼働している
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: ok
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/items:
+    post:
+      tags:
+        - Items
+      summary: Itemを作成する
+      operationId: createItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemInput'
+            example:
+              name: sample item
+              description: OpenAPIの記述例として使用するItem
+      responses:
+        '201':
+          description: Itemを作成した
+          headers:
+            Location:
+              description: 作成したItemのURL
+              schema:
+                type: string
+                format: uri-reference
+              example: /v1/items/01950d59-7c1b-7d9a-8ea3-b2c4d5e6f701
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              example:
+                id: 01950d59-7c1b-7d9a-8ea3-b2c4d5e6f701
+                name: sample item
+                description: OpenAPIの記述例として使用するItem
+                created_at: '2026-01-01T00:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/items/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ItemIdPath'
+    get:
+      tags:
+        - Items
+      summary: Itemを取得する
+      operationId: getItem
+      responses:
+        '200':
+          description: 指定したItem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              example:
+                id: 01950d59-7c1b-7d9a-8ea3-b2c4d5e6f701
+                name: sample item
+                description: OpenAPIの記述例として使用するItem
+                created_at: '2026-01-01T00:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Items
+      summary: Itemを削除する
+      operationId: deleteItem
+      responses:
+        '204':
+          description: Itemを削除した。response bodyは返さない
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Authorization headerに`Bearer <token>`の形式で指定するaccess token
+
+  parameters:
+    ItemIdPath:
+      name: itemId
+      in: path
+      required: true
+      description: Itemを識別するUUID
+      schema:
+        $ref: '#/components/schemas/ItemId'
+
+  responses:
+    BadRequest:
+      description: Path parameterやJSONなどのrequest形式が不正
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: bad_request
+            message: request format is invalid
+            details: []
+    Unauthorized:
+      description: 認証情報がない、期限切れ、または無効
+      headers:
+        WWW-Authenticate:
+          description: 利用する認証方式
+          schema:
+            type: string
+          example: Bearer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: unauthorized
+            message: missing or invalid authentication credentials
+            details: []
+    NotFound:
+      description: 指定したresourceが存在しない
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: not_found
+            message: item was not found
+            details: []
+    ValidationFailed:
+      description: Requestの値が入力制約に違反している
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: validation_failed
+            message: request validation failed
+            details:
+              - field: name
+                reason: must be between 1 and 100 characters
+    InternalServerError:
+      description: Server内で予期しないerrorが発生した
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: internal_server_error
+            message: an unexpected error occurred
+            details: []
+
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+          description: Serviceが稼働中であることを示す固定値
+
+    ItemId:
+      type: string
+      format: uuid
+      description: Itemを識別するUUID
+      examples:
+        - 01950d59-7c1b-7d9a-8ea3-b2c4d5e6f701
+
+    ItemName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Itemの表示名
+      examples:
+        - sample item
+
+    ItemDescription:
+      type:
+        - string
+        - 'null'
+      maxLength: 1000
+      description: Itemの任意説明。未設定の場合はnull
+      examples:
+        - OpenAPIの記述例として使用するItem
+        - null
+
+    DateTime:
+      type: string
+      format: date-time
+      description: RFC 3339形式の日時
+      examples:
+        - '2026-01-01T00:00:00Z'
+
+    CreateItemInput:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/ItemName'
+        description:
+          $ref: '#/components/schemas/ItemDescription'
+
+    Item:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - description
+        - created_at
+      properties:
+        id:
+          $ref: '#/components/schemas/ItemId'
+        name:
+          $ref: '#/components/schemas/ItemName'
+        description:
+          $ref: '#/components/schemas/ItemDescription'
+        created_at:
+          $ref: '#/components/schemas/DateTime'
+
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+      properties:
+        field:
+          type:
+            - string
+            - 'null'
+          description: Errorの対象field。fieldを特定できない場合はnull
+          examples:
+            - name
+        reason:
+          type: string
+          description: 対象fieldが制約を満たさなかった理由
+          examples:
+            - must be between 1 and 100 characters
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - details
+      properties:
+        code:
+          type: string
+          description: Clientがerrorの種類を判定するための機械可読なcode
+          examples:
+            - validation_failed
+        message:
+          type: string
+          description: Errorの概要
+          examples:
+            - request validation failed
+        details:
+          type: array
+          description: Errorの詳細。詳細情報がない場合は空配列
+          items:
+            $ref: '#/components/schemas/ErrorDetail'

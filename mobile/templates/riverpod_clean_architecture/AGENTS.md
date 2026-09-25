@@ -1,0 +1,21 @@
+# development rules
+
+- 原則、1ファイルにつき1関数1オブジェクトを守ること
+  - ただし、その関数だけが使うDTO、プライベート関数、独自エラーなどは同一ファイルを許可する。
+- 関数やオブジェクトの冒頭には、なにをするものなのか、最大3行までの概要コメントを挿入する。
+- root/docs にこのサービスのコンセプトや要件を入れているため、必要に応じて参照する。
+  - mobileやbackend固有のコーディングルールや仕様などはそれぞれのフォルダの /docs を参照する。
+- 詳細な規約は`{各種サービス}/docs/development/coding_rules.md`を参照する。
+- 本番で必須の依存や値を、テスト都合で`Option`に変えたり、複数の注入経路を追加したりしない。
+  - テストでは本番と同じinterfaceへMock実装を注入する。
+  - interfaceや依存関係の変更が必要な場合は、変更理由と影響を実装前にユーザーへ伝える。
+- 設定不足やGateway失敗に対するfallbackを実装者判断で追加しない。
+  - 代替値、処理継続、`Option`化などでエラーを隠す必要がある場合は、実装前にユーザーへ確認する。
+- 同じDatabase・同じローカル保存領域を使う永続化処理は、Infrastructure側で1つのGateway実装にまとめる。
+  - Usecase側のinterfaceは責務ごとに分けてもよいが、同じ接続・transaction・mapperを使う実装クラスをAggregateごとに分割しない。
+  - 保存先、接続設定、transaction境界、ライフサイクルのいずれかが異なる場合だけGateway実装の分割を検討する。
+- Gateway実装は外部機能・保存基盤ごとの独立packageにし、複数Gatewayを収容する共通`gateway` packageは作らない。
+  - 同じDatabaseを使う処理は、上記ルールを優先して同じGateway packageへまとめる。
+- 環境変数は、原則 .envrc.template をコピーして .envrc を作成し、`direnv allow`コマンドを実行して適用すること。また、環境変数の設定値はコミットしないこと
+- 外部package・libraryは完全なバージョンを指定し、`^`やバージョン範囲を使わないこと。
+  - 更新版の汚染を含むsupply chain riskを自動で取り込まないよう、更新は内容を確認したうえで明示的に行う。
