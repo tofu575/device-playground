@@ -1,19 +1,54 @@
-# Application Templates
+# Mobile Multi-Package Template
 
-単独でアプリケーション開発を開始できるテンプレートを管理するリポジトリです。
+Flutterアプリを複数のローカルPackageに分割するための、最小構成テンプレートです。
 
 ## 構成
 
-- `mobile/`: モバイルアプリ向け
-  - `templates/`: 単独で開発を開始できる最小テンプレート
-  - `addons/`: 必要なものだけコピーして導入するOptional部品
-- `frontend/`: フロントエンド向け
-- `backend/`: バックエンド向け
-- `shared/`: テンプレート管理で共有するツール
+```text
+lib/
+├─ domain/
+│  ├─ model/                 # Entity / Value Object
+│  └─ usecase/               # Interactor / Gateway interface
+├─ gateway/
+│  └─ dummy_gateway/         # 開発・テスト用のダミー実装
+├─ presentation/             # Flutter UI
+├─ wire/                     # DI
+└─ main.dart
+```
 
-現在利用できるテンプレート:
+Gatewayは最初から細分化せず、ダミーの1 Packageだけを置いています。外部API、
+永続化、プラットフォーム機能が必要になった時点で、責務ごとのPackageを追加してください。
 
-- `mobile/templates/riverpod_clean_architecture/`
-- `frontend/templates/react_clean_architecture/`
+## はじめ方
 
-コーディングルールや設計資料は各テンプレート内の`docs/`を参照してください。
+1. 下記の手順でBundle IDと表示名をプロジェクト用に変更します。
+2. `TemplateItem`を実際のDomain Modelへ置き換えます。
+3. `DummyGateway`を実サービスへ置き換えるか、責務ごとのGateway Packageを追加します。
+4. `TemplateApp`へ画面とProviderを追加します。
+
+```sh
+flutter pub get
+flutter analyze
+flutter test
+```
+
+## アプリ名とIDの変更
+
+AndroidとiOSの表示名、AndroidのApplication ID、iOSのBundle IDは
+[`package_rename`](https://pub.dev/packages/package_rename)でまとめて変更できます。
+
+1. `package_rename_config.yaml`の`app_name`、`bundle_name`、`package_name`を
+   アプリ用の値へ変更します。
+2. プロジェクトルートで次のコマンドを実行します。
+
+```sh
+flutter pub get
+dart run package_rename
+```
+
+`override_old_package`には変更前のAndroid package名を指定します。テンプレートから
+初めて変更するときは`com.example.mobile_template`のままで構いません。
+
+なお、ルート`pubspec.yaml`の`name: mobile_template`はDart package名であり、上記の
+Application ID / Bundle IDとは別の値です。Dart package名も変更する場合は`name`と
+`package:mobile_template/...`形式のimportを同時に変更してください。
