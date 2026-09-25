@@ -1,45 +1,38 @@
-# Device Playground 構想メモ
+# Device Playground
 
-## 概要
+## このリポジトリの役割
 
-スマートフォン固有の機能を、実機上で直接触りながら検証するためのDeveloper Playground。
+このリポジトリは、デバイス機能を実機で比較・検証するFlutterアプリと、
+各機能のネイティブアクセスをカプセル化したFlutter pluginを管理する。
 
-アプリごとに小さなPoCを作るのではなく、1つのアプリに実験ページを追加していく。
+- `lib/features/`は、実験ごとの画面とUI状態をFeature単位で管理する。
+- `packages/`は、Flutter APIやMethod Channel、Swift/Kotlin実装を機能単位のpluginとして管理する。
+- アプリ直下の`ios/`と`android/`は起動設定に留め、機能別のネイティブ実装を置かない。
 
-最初は **Haptics** から開始し、必要になった機能を順次追加する。
+## Featureとpluginの境界
 
-主目的は「完成されたプロダクトを作ること」ではなく、
+実験画面はFeature単位で作る。Clean Architectureの共通レイヤー分割は採用せず、
+Page、Section、Provider、Widgetを同じFeatureの`presentation`配下にまとめる。
 
-> スマートフォンの機能を、実機で触って理解・比較できる実験場を作る
+ネイティブAPIへのアクセスが必要な機能は、Model、Service interface、Method Channel、
+Swift/Kotlin実装をひとつのFlutter pluginとして`packages/`へ切り出す。
+依存方向は次の一方向とする。
 
-こと。
+```text
+FeatureのUI
+  → Riverpod Provider
+    → 機能別Flutter pluginのService interface
+      → Method Channel
+        → iOS / AndroidのネイティブAPI
+```
 
----
+pluginからアプリ側のFeatureには依存しない。PageやWidgetからMethod Channelや
+ネイティブAPIを直接呼び出さない。
 
-## 想定用途
+### Hapticsの例
 
-- 個人開発前の技術検証
-- iOS / Androidの挙動差の確認
-- Flutter標準APIでできることの確認
-- ネイティブAPIまで降りた場合の比較
-- UI / UX表現の研究
-- 実装サンプルの蓄積
-- GitHubでの技術アウトプット
-- Zenn等の記事ネタ
-- 転職時の技術ポートフォリオ
-
-自分用ツールとして使いつつ、公開して他の開発者も触れる形を目指す。
-
----
-
-# 基本方針
-
-## Featureベースのアーキテクチャ
-
-このリポジトリでは、実験を素早く追加・削除できるよう、Feature単位でコードをまとめる。
-以前のテンプレートにあったClean Architectureの `domain` / `usecase` / `gateway` /
-`presentation` 分割は採用しない。各実験で必要なコードは同じFeature配下へ配置しつつ、
-Pageとデバイス機能へのアクセスは分離する。
+Hapticsでは、アプリ側の`lib/features/haptics`に実験UIだけを配置し、
+`packages/device_haptics`がCommon Haptics、iOS Core Haptics、Android Vibratorへのアクセスを担当する。
 
 ```text
 lib/
@@ -47,411 +40,25 @@ lib/
 ├─ features/
 │  ├─ home/                 # 実装済み実験への入口
 │  └─ haptics/
-│     ├─ presentation/      # CommonとPlatform固有UIを並べるPage
-│     ├─ common/
-│     │  ├─ model/          # Common Hapticsで扱う値
-│     │  ├─ presentation/   # Provider、Section、固有Widget
-│     │  └─ service/        # Flutter標準Hapticsへのアクセス
-│     ├─ ios/               # Core Haptics
-│     └─ android/           # Android Vibrator
+│     └─ presentation/
+│        ├─ pages/          # Haptics全体のPage
+│        ├─ sections/       # Common/iOS/Androidの表示単位
+│        ├─ providers/      # RiverpodによるServiceのDI
+│        └─ widgets/        # Sectionから使うUI部品
 └─ main.dart
+
+packages/
+└─ device_haptics/              # HapticsのFlutter plugin
+   ├─ lib/src/                  # Common/iOS/AndroidのModelとService
+   ├─ ios/                      # Core Haptics実装
+   └─ android/                  # Vibrator実装
 ```
 
 Feature内部で共有するServiceはRiverpodのProviderから取得し、Providerは`presentation`へ置く。
 機能の実行に値が必要な場合は、Providerへ保持せずServiceメソッドの引数として渡す。
-Platform固有機能は`ios`、`android`のサブFeatureへ分け、意味の異なるService interfaceを
-無理に共通化しない。
-
-## Flutterを共通シェルとして使う
-
-UIやナビゲーション、共通処理はFlutterで実装する。
-
-ただし、
-
-> iOS / Androidの差を無理に吸収しない。
-
-このアプリでは、プラットフォーム差そのものも検証対象とする。
-
-```text
-Flutter
-  │
-  ├─ Common API
-  │
-  ├─ iOS
-  │   └─ Swift / Native API
-  │
-  └─ Android
-      └─ Kotlin / Native API
-```
-
-Flutter標準APIで不足した場合のみPlatform Channel等を利用する。
-
----
-
-# ページ構成
-
-ホーム画面には、**実装済みの実験だけを並べる**。
-
-最初から大量の未実装メニューは作らない。
-
-例：
-
-```text
-Device Playground
-
-Haptics
-Motion
-Touch
-Location
-Audio
-...
-```
-
-必要になったものから順番に増やしていく。
-
----
-
-# 最初の実装：Haptics
-
-最初はHapticsだけ実装する。
-
-## 目的
-
-iPhone / Android端末の振動・触覚フィードバックを実際に触り、
-
-- どんな種類があるか
-- 何を制御できるか
-- どの程度違いを感じられるか
-- UI表現としてどう使えそうか
-
-を確認する。
-
-将来的にはハンドスピナーなどの触覚UIの検証にも利用する。
-
----
-
-## Phase 1：Flutter標準Haptics
-
-まずFlutter標準APIだけを試す。
-
-例：
-
-- Selection
-- Light Impact
-- Medium Impact
-- Heavy Impact
-- Vibrate
-
-ボタンを押すだけで、それぞれ比較できる。
-
----
-
-## Phase 2：iOS / Android固有API
-
-Flutter標準では触れない機能をPlatform Channel経由で試す。
-
-### iOS
-
-Core Hapticsを利用し、実機の対応状況と次の値を操作できる。
-
-- Transient
-- Continuous
-- Intensity
-- Sharpness
-- Duration
-
-### Android
-
-Androidの`Vibrator`と`VibrationEffect`を利用し、実機のVibrator・振幅制御対応状況を表示する。
-
-- DurationとAmplitudeを持つ波形セグメント
-- セグメントの追加・削除
-- 波形の繰り返しと停止
-
----
-
-# Haptics LabのUI案
-
-実験ページは、
-
-```text
-入力
-↓
-パラメータ
-↓
-実行
-↓
-結果 / メモ
-```
-
-という共通構造にする。
-
-例：
-
-```text
-Haptics
-
-Type
-[ Transient ▼ ]
-
-Intensity
-────●────
-0.65
-
-Sharpness
-──●──────
-0.30
-
-Duration
-[ 500 ms ]
-
-[ Play ]
-```
-
-その場で値を変更して実機で確認できる。
-
----
-
-## 開発者向け情報
-
-可能なら以下も表示する。
-
-```text
-Platform
-iOS
-
-Device
-iPhone xx
-
-OS
-iOS xx.x
-
-Core Haptics
-Supported
-
-Intensity
-0.65
-
-Sharpness
-0.30
-```
-
-気に入った設定を別プロジェクトへ移植しやすくする。
-
-将来的には設定値コピーもあり。
-
----
-
-# 将来追加したい実験
-
-## Motion
-
-- Accelerometer
-- Gyroscope
-- Device Orientation
-- Rotation Rate
-
-## Touch / Gesture
-
-- Tap
-- Long Press
-- Drag
-- Flick
-- Velocity
-- Multi Touch
-
-## Display
-
-- Refresh Rate
-- 60Hz / 120Hz
-- Frame Time
-- Animation
-
-## Audio
-
-- SE
-- 音量
-- Hapticsとの同期
-- Audio Session
-
-## Location
-
-- GPS
-- Accuracy
-- Update Interval
-- Permission
-
-## Sensors
-
-- Compass
-- Proximity
-- 利用可能なその他センサー
-
-## System
-
-- App Lifecycle
-- Background / Foreground
-- Battery
-- Network
-- Permissions
-
----
-
-# 設計上の重要ポイント
-
-## 「全部入り」を目標にしない
-
-Device APIを網羅すること自体をゴールにしない。
-
-必要になった機能を追加する。
-
-そのため、
-
-> 未実装カテゴリを最初から大量に作らない。
-
----
-
-## 差分を隠さない
-
-通常のクロスプラットフォームアプリでは、
-
-> iOS / Android差分を吸収する
-
-ことが多い。
-
-このアプリでは逆に、
-
-> iOS / Android差分を観察できるようにする。
-
-ここをプロジェクトの特徴とする。
-
----
-
-## UIより検証速度を優先
-
-初期は最低限のUIでよい。
-
-重要なのは、
-
-> 値を変える
-> ↓
-> 実行する
-> ↓
-> 実機で感じる
-
-までが速いこと。
-
----
-
-# 最初の完成条件
-
-最初のバージョンは、
-
-```text
-Home
-  ↓
-Haptics
-  ↓
-Flutter標準Hapticsを比較
-```
-
-だけでよい。
-
-ここまでできたらGitHubへ公開。
-
-その後Core Hapticsなどを追加する。
-
----
-
-# ハンドスピナーへの応用
-
-Device PlaygroundでHapticsを検証したあと、
-
-- 回転速度
-- 摩擦
-- 角速度
-- 減速
-- ベアリング感
-
-などをHapticsへマッピングする。
-
-例えば、
-
-```text
-高速
-ﾄﾄﾄﾄﾄﾄﾄ
-
-中速
-ﾄ ﾄ ﾄ ﾄ
-
-低速
-ﾄｯ   ﾄｯ    ﾄｯ
-```
-
-のように、物理状態からリアルタイムに触覚を生成する。
-
----
-
-# リポジトリ名候補
-
-## 分かりやすさ重視
-
-### `device-playground`
-
-一番おすすめ。
-
-何をするリポジトリなのか一目で分かる。
-
----
-
-### `mobile-device-lab`
-
-より技術検証ツール感が強い。
-
-少し固め。
-
----
-
-### `device-lab`
-
-短くて分かりやすい。
-
-ただし名前としてはかなり一般的。
-
----
-
-### `mobile-playground`
-
-用途は伝わりやすいが、スマホ固有機能の意味はやや薄い。
-
----
-
-## 少し固有名寄り
-
-### `PocketLab`
-
-「ポケットに入っているデバイスを実験する」という意味が出せる。
-
-公開アプリ名にも使いやすい。
-
----
-
-### `TouchLab`
-
-Hapticsにはかなり合うが、GPSやMotionまで広がったときに少し狭い。
-
----
-
-### `DeviceScope`
-
-デバイスの中身を観察するニュアンス。
-
-技術ツールっぽさがある。
-
----
-
-### `MobileScope`
-
-Mobile + Scope。
-
-センサーや端末機能を観測する意味にも取れる。
+Platform固有のModelとServiceはplugin内の`ios`、`android`へ分け、
+意味の異なるService interfaceを無理に共通化しない。
+
+今後Motion、Touch、Location、AudioなどのFeatureを追加する場合も、
+Hapticsと同じ境界と依存方向を適用する。ネイティブアクセスが必要なら、
+そのFeatureに対応するpluginを`packages/`へ追加する。

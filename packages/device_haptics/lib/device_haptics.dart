@@ -1,0 +1,12 @@
+export 'src/android/model/vibration_segment.dart';
+export 'src/android/model/vibration_waveform.dart';
+export 'src/android/model/vibrator_capabilities.dart';
+export 'src/android/service/android_vibration_service.dart';
+export 'src/android/service/method_channel_android_vibration_service.dart';
+export 'src/common/model/haptic_experiment.dart';
+export 'src/common/service/common_haptics_service.dart';
+export 'src/common/service/flutter_common_haptics_service.dart';
+export 'src/ios/model/ios_core_haptic_event_type.dart';
+export 'src/ios/model/ios_core_haptic_input.dart';
+export 'src/ios/service/ios_core_haptics_service.dart';
+export 'src/ios/service/method_channel_ios_core_haptics_service.dart';

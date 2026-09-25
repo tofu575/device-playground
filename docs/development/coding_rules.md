@@ -43,7 +43,9 @@ ServiceはProviderから本番実装を返す。設定不足を隠すfallback、
 ## Service
 
 ServiceはFlutter API、Platform Channel、ネイティブAPIなど、実際のデバイス機能へのアクセスを
-担当する。PageとWidgetからPlatform APIを直接呼び出さない。
+担当する。PageとWidgetからPlatform APIを直接呼び出さない。Method Channelを使う機能は、
+Model、Service interface、Channel実装、Swift/Kotlin実装を機能単位のFlutter pluginにまとめる。
+アプリ直下の`MainActivity`や`AppDelegate`へ機能別のChannel登録を追加しない。
 
 Common APIとPlatform固有APIは別のサブFeature、別のService interfaceとして扱う。
 名前が似ているだけで共通化せず、入力、結果、失敗条件、対応機能の意味が一致する場合だけ
@@ -54,18 +56,21 @@ Platform分岐をPageやWidgetへ分散させない。同じFeatureの表示中�
 
 ## Hapticsの構成
 
-Flutter標準のHapticsは`haptics/common`、Core Hapticsは`haptics/ios`、Android Vibratorは
-`haptics/android`の独立したサブFeatureへ配置する。
+Hapticsのアプリ側はUIとRiverpod Providerに限定する。Common、Core Haptics、
+Android VibratorのModelとService、ネイティブ実装は`packages/device_haptics`へ配置する。
 
 ```text
 haptics/
-├─ presentation/  # Haptics全体を縦に構成するPage
-├─ common/
-│  ├─ model/
-│  ├─ presentation/
-│  └─ service/
-├─ ios/
-└─ android/
+└─ presentation/
+   ├─ pages/      # Haptics全体を縦に構成するPage
+   ├─ sections/   # Common/iOS/Androidの表示単位
+   ├─ providers/  # RiverpodによるServiceのDI
+   └─ widgets/    # SectionのUI部品
+
+packages/device_haptics/
+├─ lib/src/      # Model、Service interface、Channel実装
+├─ ios/          # Core Haptics
+└─ android/      # Android Vibrator
 ```
 
 ## ファイル分割とコメント

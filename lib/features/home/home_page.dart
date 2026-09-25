@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../haptics/presentation/haptics_page.dart';
+import '../haptics/presentation/pages/haptics_page.dart';
 import 'widgets/experiment_card.dart';
 
 /// 実装済みのデバイス実験への入口を表示します。

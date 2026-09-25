@@ -7,6 +7,8 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
+  device_haptics:
+    path: packages/device_haptics
   flutter:
     sdk: flutter
   flutter_riverpod: 3.4.2
