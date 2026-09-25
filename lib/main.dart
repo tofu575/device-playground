@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:presentation/presentation.dart';
 
-import 'wire/interactor_factory.dart';
+import 'app/device_playground_app.dart';
 
-void main() => runApp(TemplateApp(itemInteractor: buildItemInteractor()));
+/// Device Playgroundを起動します。
+void main() => runApp(const DevicePlaygroundApp());
