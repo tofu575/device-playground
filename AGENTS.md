@@ -6,6 +6,12 @@
 - root/docs にこのサービスのコンセプトや要件を入れているため、必要に応じて参照する。
   - mobileやbackend固有のコーディングルールや仕様などはそれぞれのフォルダの /docs を参照する。
 - 詳細な規約は`{各種サービス}/docs/development/coding_rules.md`を参照する。
+- このアプリはFeatureベースで構成し、Clean Architectureのレイヤー分割は適用しない。
+  - Feature内は必要に応じて`presentation`、`model`、`service`へ分け、ContextはUI依存のため`presentation`へ置く。
+  - Common APIとPlatform固有APIは別のサブFeatureとし、意味の異なるService interfaceを無理に共通化しない。
+- このリポジトリは実機上での感触と端末差の確認を目的とするため、UIテストと単体テストは原則として追加しない。
+  - 検証は静的解析、iOS・Androidのビルド、実機での手動確認を基本とする。
+  - 自動テストが必要だと判断した場合は、追加理由と検証対象を実装前にユーザーへ伝える。
 - 本番で必須の依存や値を、テスト都合で`Option`に変えたり、複数の注入経路を追加したりしない。
   - テストでは本番と同じinterfaceへMock実装を注入する。
   - interfaceや依存関係の変更が必要な場合は、変更理由と影響を実装前にユーザーへ伝える。

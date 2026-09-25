@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
 
 import '../model/haptic_experiment.dart';
-import 'haptics_service.dart';
+import 'common_haptics_service.dart';
 
 /// Flutter標準APIを使って端末の触覚フィードバックを実行します。
-final class FlutterHapticsService implements HapticsService {
-  const FlutterHapticsService();
+final class FlutterCommonHapticsService implements CommonHapticsService {
+  const FlutterCommonHapticsService();
 
   @override
   Future<void> play(HapticExperiment experiment) => switch (experiment) {

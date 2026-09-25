@@ -1,4 +1,4 @@
-/// 比較対象となるFlutter標準Hapticsと、その表示情報を定義します。
+/// Common Hapticsで比較するAPIと、その表示情報を定義します。
 enum HapticExperiment {
   selectionClick('Selection Click', 'HapticFeedback.selectionClick()'),
   lightImpact('Light', 'HapticFeedback.lightImpact()'),

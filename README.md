@@ -47,16 +47,18 @@ lib/
 ├─ features/
 │  ├─ home/                 # 実装済み実験への入口
 │  └─ haptics/
-│     ├─ context/           # Serviceの共有とFeatureの組み立て
-│     ├─ model/             # Haptics Featureで扱う値
-│     ├─ presentation/      # Pageとページ固有Widget
-│     └─ service/           # Flutter・ネイティブのデバイス機能アクセス
+│     ├─ presentation/      # CommonとPlatform固有UIを並べるPage
+│     └─ common/
+│        ├─ model/          # Common Hapticsで扱う値
+│        ├─ presentation/   # Context、Section、固有Widget
+│        └─ service/        # Flutter標準Hapticsへのアクセス
 └─ main.dart
 ```
 
-Feature内部で共有するServiceはContextから取得する。機能の実行に値が必要な場合は、
-Contextへ状態として保持せず、アクセスメソッドの引数として渡す。複数Featureで実際に共有する
-ものが生まれた時点で共通化を検討し、将来用途を予測したレイヤーは先に作らない。
+Feature内部で共有するServiceはContextから取得し、UIに依存するContextは`presentation`へ置く。
+機能の実行に値が必要な場合は、Contextへ状態として保持せず、Serviceメソッドの引数として渡す。
+Platform固有機能は`ios`、`android`のサブFeatureとして実装時に追加し、意味の異なるService
+interfaceを無理に共通化しない。
 
 ## Flutterを共通シェルとして使う
 
