@@ -62,3 +62,18 @@ Platform固有のModelとServiceはplugin内の`ios`、`android`へ分け、
 今後Motion、Touch、Location、AudioなどのFeatureを追加する場合も、
 Hapticsと同じ境界と依存方向を適用する。ネイティブアクセスが必要なら、
 そのFeatureに対応するpluginを`packages/`へ追加する。
+
+## Flutter pluginを採用する背景
+
+Method Channelをアプリ直下に実装すると、Flutter側のFeatureは`lib/features/`、
+Swift/Kotlin実装は`ios/Runner`や`android/app`に分散する。
+機能が増えると`AppDelegate`や`MainActivity`のChannel登録も膨らみ、
+ひとつの機能がどのコードで成り立っているかを追いにくくなる。
+
+また、その機能を別アプリへ移植する場合、Dartコードだけでなく、
+複数のPlatformディレクトリから実装と登録処理を拾い集める必要がある。
+これは機能単位のカプセル化ができていない状態と考える。
+
+そのため、Dartの公開API、Method Channelの契約、iOS・Android実装を
+機能別のFlutter pluginにまとめる。再利用しない場合でも、機能の境界が明確になり、
+アプリ側はpluginの公開APIだけを意識すればよいため、可読性と保守性を維持しやすい。
