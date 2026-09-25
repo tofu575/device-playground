@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/haptic_experiment.dart';
-import 'common_haptics_context.dart';
+import 'providers/common_haptics_service_provider.dart';
 import 'widgets/haptic_section.dart';
 import 'widgets/last_played_card.dart';
 
 /// Flutter標準Hapticsの実行UIと直近の実行状態を管理します。
-final class CommonHapticsSection extends StatefulWidget {
+final class CommonHapticsSection extends ConsumerStatefulWidget {
   const CommonHapticsSection({super.key});
 
   @override
-  State<CommonHapticsSection> createState() => _CommonHapticsSectionState();
+  ConsumerState<CommonHapticsSection> createState() =>
+      _CommonHapticsSectionState();
 }
 
 /// Common Hapticsで最後に実行した種類を画面内で保持します。
-final class _CommonHapticsSectionState extends State<CommonHapticsSection> {
+final class _CommonHapticsSectionState
+    extends ConsumerState<CommonHapticsSection> {
   HapticExperiment? _lastPlayed;
 
   /// Hapticsを実行し、完了後にLast playedへ反映します。
   Future<void> _play(HapticExperiment experiment) async {
-    await CommonHapticsContext.of(context).play(experiment);
+    await ref.read(commonHapticsServiceProvider).play(experiment);
     if (!mounted) {
       return;
     }

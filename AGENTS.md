@@ -7,7 +7,7 @@
   - mobileやbackend固有のコーディングルールや仕様などはそれぞれのフォルダの /docs を参照する。
 - 詳細な規約は`{各種サービス}/docs/development/coding_rules.md`を参照する。
 - このアプリはFeatureベースで構成し、Clean Architectureのレイヤー分割は適用しない。
-  - Feature内は必要に応じて`presentation`、`model`、`service`へ分け、ContextはUI依存のため`presentation`へ置く。
+  - Feature内は必要に応じて`presentation`、`model`、`service`へ分け、ServiceのDIと共有にはRiverpodを使う。
   - Common APIとPlatform固有APIは別のサブFeatureとし、意味の異なるService interfaceを無理に共通化しない。
 - このリポジトリは実機上での感触と端末差の確認を目的とするため、UIテストと単体テストは原則として追加しない。
   - 検証は静的解析、iOS・Androidのビルド、実機での手動確認を基本とする。

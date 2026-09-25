@@ -18,7 +18,7 @@ Feature内は必要に応じて次の責務へ分ける。
 ```text
 feature/
 ├─ model/          # Feature内で受け渡す値
-├─ presentation/   # Page、Section、Context、Widget
+├─ presentation/   # Page、Section、Provider、Widget
 └─ service/        # Flutter・Platform固有APIへのアクセス
 ```
 
@@ -30,14 +30,15 @@ Pageは`Scaffold`、スクロール領域、サブFeatureの配置を担当す�
 Page内へ埋め込む表示単位はPageではなくSectionとし、`Scaffold`やスクロールを重ねない。
 Page固有Widgetは、そのPageまたはSectionと同じ`presentation/widgets`へ置く。
 
-## Context
+## Riverpod
 
-Contextは`InheritedWidget`や`BuildContext`を利用するPresentationの仕組みとして、
-利用するサブFeatureの`presentation`へ置く。ContextはServiceをWidgetツリーへ共有するが、
-実行ごとの入力値やDomain状態を保持しない。Serviceの実行に値が必要な場合はメソッド引数で渡す。
+ServiceのDIとFeature内での共有にはRiverpodを使う。アプリのルートに`ProviderScope`を置き、
+Service Providerは利用するサブFeatureの`presentation/providers`へ配置する。
+Widget内で独自の`InheritedWidget`やService Locatorを作らない。
 
-本番で必須のServiceは必須引数としてContextへ渡す。設定不足を隠すfallback、nullable化、
-複数の注入経路は追加しない。
+実行ごとの入力値をService Providerへ保持せず、Serviceメソッドの引数として渡す。本番で必須の
+ServiceはProviderから本番実装を返す。設定不足を隠すfallback、nullable化、複数の注入経路は
+追加しない。
 
 ## Service
 
@@ -53,8 +54,8 @@ Platform分岐をPageやWidgetへ分散させない。同じFeatureの表示中�
 
 ## Hapticsの構成
 
-Flutter標準のHapticsは`haptics/common`へ配置する。Core HapticsとAndroid Vibratorを実装する
-場合は、それぞれ`haptics/ios`、`haptics/android`の独立したサブFeatureとして追加する。
+Flutter標準のHapticsは`haptics/common`、Core Hapticsは`haptics/ios`、Android Vibratorは
+`haptics/android`の独立したサブFeatureへ配置する。
 
 ```text
 haptics/
@@ -63,8 +64,8 @@ haptics/
 │  ├─ model/
 │  ├─ presentation/
 │  └─ service/
-├─ ios/           # 実装時に追加
-└─ android/       # 実装時に追加
+├─ ios/
+└─ android/
 ```
 
 ## ファイル分割とコメント

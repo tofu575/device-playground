@@ -48,17 +48,19 @@ lib/
 │  ├─ home/                 # 実装済み実験への入口
 │  └─ haptics/
 │     ├─ presentation/      # CommonとPlatform固有UIを並べるPage
-│     └─ common/
-│        ├─ model/          # Common Hapticsで扱う値
-│        ├─ presentation/   # Context、Section、固有Widget
-│        └─ service/        # Flutter標準Hapticsへのアクセス
+│     ├─ common/
+│     │  ├─ model/          # Common Hapticsで扱う値
+│     │  ├─ presentation/   # Provider、Section、固有Widget
+│     │  └─ service/        # Flutter標準Hapticsへのアクセス
+│     ├─ ios/               # Core Haptics
+│     └─ android/           # Android Vibrator
 └─ main.dart
 ```
 
-Feature内部で共有するServiceはContextから取得し、UIに依存するContextは`presentation`へ置く。
-機能の実行に値が必要な場合は、Contextへ状態として保持せず、Serviceメソッドの引数として渡す。
-Platform固有機能は`ios`、`android`のサブFeatureとして実装時に追加し、意味の異なるService
-interfaceを無理に共通化しない。
+Feature内部で共有するServiceはRiverpodのProviderから取得し、Providerは`presentation`へ置く。
+機能の実行に値が必要な場合は、Providerへ保持せずServiceメソッドの引数として渡す。
+Platform固有機能は`ios`、`android`のサブFeatureへ分け、意味の異なるService interfaceを
+無理に共通化しない。
 
 ## Flutterを共通シェルとして使う
 
@@ -146,33 +148,25 @@ iPhone / Android端末の振動・触覚フィードバックを実際に触り�
 
 ## Phase 2：iOS / Android固有API
 
-Flutter標準では触れない機能を追加する。
+Flutter標準では触れない機能をPlatform Channel経由で試す。
 
 ### iOS
 
-Core Haptics等を利用。
-
-検証候補：
+Core Hapticsを利用し、実機の対応状況と次の値を操作できる。
 
 - Transient
 - Continuous
 - Intensity
 - Sharpness
 - Duration
-- Pattern
-- Dynamic Parameter
 
 ### Android
 
-AndroidのVibrator系APIを利用。
+Androidの`Vibrator`と`VibrationEffect`を利用し、実機のVibrator・振幅制御対応状況を表示する。
 
-検証候補：
-
-- Amplitude
-- Duration
-- Waveform
-- Predefined Effect
-- Amplitude Control対応状況
+- DurationとAmplitudeを持つ波形セグメント
+- セグメントの追加・削除
+- 波形の繰り返しと停止
 
 ---
 

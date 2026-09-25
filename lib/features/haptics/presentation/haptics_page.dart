@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../common/presentation/common_haptics_feature.dart';
+import '../android/presentation/android_vibration_section.dart';
+import '../common/presentation/common_haptics_section.dart';
+import '../ios/presentation/core_haptics_section.dart';
 
 /// CommonとPlatform固有のHaptics実験を縦に構成する画面です。
 final class HapticsPage extends StatelessWidget {
@@ -19,7 +22,14 @@ final class HapticsPage extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           const SizedBox(height: 28),
-          const CommonHapticsFeature(),
+          const CommonHapticsSection(),
+          switch (defaultTargetPlatform) {
+            TargetPlatform.iOS => const CoreHapticsSection(),
+            TargetPlatform.android => const AndroidVibrationSection(),
+            final platform => throw UnsupportedError(
+              'Haptics is not supported on $platform.',
+            ),
+          },
         ],
       ),
     );
